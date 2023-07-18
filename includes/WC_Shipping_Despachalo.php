@@ -102,7 +102,8 @@ class WC_Shipping_Despachalo extends WC_Shipping_Method
 
 	public function getCobertura($city)
 	{
-		$url = "http://localhost:8080";
+		// $url = "http://localhost:8080";
+		$url = "https://admin.despachalo.cl";
 		$endpoint = "{$url}/api-external/cobertura";
 		$headerBearer = "Authorization: Bearer {$this->token}";
 		$curl = curl_init();

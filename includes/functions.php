@@ -5,7 +5,8 @@ if (!defined('DESPACHALO_ADMIN')) {
 }
 
 if (!defined('DESPACHALO_API')) {
-	define('DESPACHALO_API', 'http://localhost:8080/api-external/');
+	define('DESPACHALO_API', 'https://admin.despachalo.cl/api-external/');
+	//define('DESPACHALO_API', 'http://localhost:8080/api-external/');
 }
 
 if (!defined('TRACKING_URL')) {
@@ -125,7 +126,40 @@ function despachalo_agregar_comuna_etiqueta($column)
 
 		<?php
 		} else {
-			echo "NO";
+			?>
+			<style>
+				.despachalo-boton-etiqueta {
+					text-align: center;
+				}
+
+				.despachalo-ge-label-grid {
+					background-color:  #fff;
+					color: #120BD9;
+					margin-bottom: 8px;
+				}
+			</style>
+			<div class="despachalo-boton-etiqueta">
+				<button onclick="crearEtiqueta('<?= $post->ID ?>');" id="despachalo-ge-label-grid-<?= $post->ID ?>" class="button despachalo-ge-label-grid">Generar Etiqueta</button>
+			</div>
+			<script type="text/javascript">
+				function crearEtiqueta(id){
+					var ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
+					jQuery.ajax({
+						type: 'POST',
+						cache: false,
+						url: ajaxurl,
+						data: {
+							action: 'despachalo_generar_etiqueta',
+							dataid: id,
+						},
+						success: function(data, textStatus, XMLHttpRequest) {
+							location.reload();
+						},
+						error: function(MLHttpRequest, textStatus, errorThrown) {}
+					});
+				}
+			</script>
+		<?php
 		}
 	}
 }
@@ -230,8 +264,6 @@ function despachalo_generar_etiqueta()
 	$tracking = TRACKING_URL.$etiqueta['data'][0]->tracking;
 
 	if($etiqueta['status'] == 201){
-		// $html = '<div style="position: relative; width: 100%; height: 60px;"><a style=" width: 225px;text-align: center;background: #120BD9;color: white;padding: 10px;margin: 10px;float: left;text-decoration: none;" href="' . $etiqueta['data'][0]->label . '" target="_blank">IMPRIMIR ETIQUETA</a></div>';
-		// $html.= '<div style="position: relative; width: 100%; height: 60px;" ><a style=" width: 225px; text-align: center;background: #120BD9;color: white;padding: 10px;margin: 10px;float: left;text-decoration: none;" href="' . $tracking . '" target="_blank">Seguir Paquete</a></div>';
 		?>
 		<script type="text/javascript">
 			location.reload();
