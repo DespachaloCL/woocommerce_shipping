@@ -4,7 +4,7 @@
  * Plugin Name: Despachalo Shipping for WooCommerce
  * Plugin URI: https://despachalo.cl/
  * Description: Método de envió de Despachalo para WooCommerce
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Despachalo SPA
  * Author URI: https://despachalo.cl/
  * License: GPLv2 or later

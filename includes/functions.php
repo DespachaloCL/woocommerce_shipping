@@ -96,82 +96,107 @@ function despachalo_agregar_comuna_etiqueta($column)
 
 	global $post;
 
-	if ('etiqueta_despachalo' === $column) {
+	$order = wc_get_order($post->ID);
 
-		$tag = get_post_meta($post->ID, '_despachalo_etiquetas', true);
-		$cancelled = get_post_meta($post->ID, '_despachalo_fecha_cancelado');
+	$shipping_method_id = '';
 
-		if (!empty($cancelled)) {
-			echo "<p style='color:red;'>CANCELADO<p>";
-		} else if (!empty($tag)) {
+	foreach( $order->get_items( 'shipping' ) as $item_id => $item ){
+		$shipping_method_id          = $item->get_method_id(); // The method ID
+	}
 
-			$etiqueta_url = $tag;
+	if ($shipping_method_id === 'despachalo_rest') {
+		if ('etiqueta_despachalo' === $column) {
 
-?>
-			<style>
-				.despachalo-boton-etiqueta {
-					text-align: center;
-				}
+			$tag = get_post_meta($post->ID, '_despachalo_etiquetas', true);
+			$cancelled = get_post_meta($post->ID, '_despachalo_fecha_cancelado');
 
-				#despachalo-label {
-					background-color: #120BD9;
-					color: #fff;
-					margin-bottom: 8px;
-				}
-			</style>
+			if (!empty($cancelled)) {
+				echo "<p style='color:red;'>CANCELADO<p>";
+			} else if (!empty($tag)) {
 
-			<div class="despachalo-boton-etiqueta">
-				<a id="despachalo-label" href="<?= $etiqueta_url ?>" target="_blank" class="button">Imprimir Etiqueta</a>
-			</div>
+				$etiqueta_url = $tag;
 
-		<?php
-		} else {
-			?>
-			<style>
-				.despachalo-boton-etiqueta {
-					text-align: center;
-				}
+	?>
+				<style>
+					.despachalo-boton-etiqueta {
+						text-align: center;
+					}
 
-				.despachalo-ge-label-grid {
-					background-color:  #fff;
-					color: #120BD9;
-					margin-bottom: 8px;
-				}
-			</style>
-			<div class="despachalo-boton-etiqueta">
-				<button onclick="crearEtiqueta('<?= $post->ID ?>');" id="despachalo-ge-label-grid-<?= $post->ID ?>" class="button despachalo-ge-label-grid">Generar Etiqueta</button>
-			</div>
-			<script type="text/javascript">
-				function crearEtiqueta(id){
-					var ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
-					jQuery.ajax({
-						type: 'POST',
-						cache: false,
-						url: ajaxurl,
-						data: {
-							action: 'despachalo_generar_etiqueta',
-							dataid: id,
-						},
-						success: function(data, textStatus, XMLHttpRequest) {
-							location.reload();
-						},
-						error: function(MLHttpRequest, textStatus, errorThrown) {}
-					});
-				}
-			</script>
-		<?php
+					#despachalo-label {
+						background-color: #120BD9;
+						color: #fff;
+						margin-bottom: 8px;
+					}
+				</style>
+
+				<div class="despachalo-boton-etiqueta">
+					<a id="despachalo-label" href="<?= $etiqueta_url ?>" target="_blank" class="button">Imprimir Etiqueta</a>
+				</div>
+
+			<?php
+			} else {
+				?>
+				<style>
+					.despachalo-boton-etiqueta {
+						text-align: center;
+					}
+
+					.despachalo-ge-label-grid {
+						background-color:  #fff;
+						color: #120BD9;
+						margin-bottom: 8px;
+					}
+				</style>
+				<div class="despachalo-boton-etiqueta">
+					<button onclick="crearEtiqueta('<?= $post->ID ?>');" id="despachalo-ge-label-grid-<?= $post->ID ?>" class="button despachalo-ge-label-grid">Generar Etiqueta</button>
+				</div>
+				<script type="text/javascript">
+					function crearEtiqueta(id){
+						let boton = jQuery('#despachalo-ge-label-grid-<?= $post->ID ?>');
+						boton.html("Generando Etiqueta ...");
+						boton.prop('disabled', true);
+						var ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
+						jQuery.ajax({
+							type: 'POST',
+							cache: false,
+							url: ajaxurl,
+							data: {
+								action: 'despachalo_generar_etiqueta',
+								dataid: id,
+							},
+							success: function(data, textStatus, XMLHttpRequest) {
+								location.reload();
+							},
+							error: function(MLHttpRequest, textStatus, errorThrown) {}
+						});
+					}
+				</script>
+			<?php
+			}
 		}
 	}
 }
 
 /**
- * Box genera etiquetas
+ * Box genera etiquetas en detalle del producto
  */
 add_action('add_meta_boxes', 'wc_despachalo_shipping_box_add_box');
 
 function wc_despachalo_shipping_box_add_box()
 {
-	add_meta_box('woocommerce-delivery-box', __('Despachalo', 'woocommerce-delivery'), 'wc_despachalo_shipping_box_create_box_content', 'shop_order', 'side', 'default');
+	global $post;
+
+	$order = wc_get_order($post->ID);
+
+	$shipping_method_id = '';
+
+	foreach( $order->get_items( 'shipping' ) as $item_id => $item ){
+		$shipping_method_id          = $item->get_method_id(); // The method ID
+	}
+
+	if ($shipping_method_id === 'despachalo_rest') {
+		add_meta_box('woocommerce-delivery-box', __('Despachalo', 'woocommerce-delivery'), 'wc_despachalo_shipping_box_create_box_content', 'shop_order', 'side', 'default');
+	}
 }
 
 function wc_despachalo_shipping_box_create_box_content()
@@ -180,6 +205,7 @@ function wc_despachalo_shipping_box_create_box_content()
 	$site_url = get_site_url();
 
 	$order = wc_get_order($post->ID);
+	
 	$shipping = $order->get_items('shipping');
 
 	echo '<div class="despachalo-ge">';
@@ -205,7 +231,7 @@ function wc_despachalo_shipping_box_create_box_content()
 	if (empty($despachalo_tracking_number)) { ?>
 
 		<style type="text/css">
-			#despachalo-ge,
+			#despachalo-ge-<?= $post->ID ?>,
 			#editar-despachalo,
 			#manual-despachalo-generar {
 				background: #120BD9;
@@ -220,12 +246,15 @@ function wc_despachalo_shipping_box_create_box_content()
 			}
 		</style>
 
-		<div id="despachalo-ge" class="button" data-id="<?php echo $post->ID; ?>">Generar Etiqueta</div>
+		<button id="despachalo-ge-<?php echo $post->ID; ?>" class="button" data-id="<?php echo $post->ID; ?>">Generar Etiqueta</button>
 
 
 		<div class="despachalo-ge-label"> </div>
 		<script type="text/javascript">
-			jQuery('body').on('click', '#despachalo-ge', function(e) {
+			jQuery('body').on('click', '#despachalo-ge-<?= $post->ID ?>', function(e) {
+				let boton = jQuery('#despachalo-ge-<?= $post->ID ?>');
+				boton.html("Generando Etiqueta ...");
+				boton.prop('disabled', true);
 				e.preventDefault();
 				var ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
 				var dataid = jQuery(this).data("id");
